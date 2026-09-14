@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Ordering Agent for KFC · Kodevengers</title>
+<style>
+  :root { --bg: #0f1115; --panel: #171a21; --panel-2: #1f232c; --ink: #f3f4f6; --ink-2: #b6bac4; --ink-3: #7d8391; --line: #2a2f3a; --accent: #25d366; --accent-2: #2a78d6; --warn: #f59e0b; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  nav.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 18px; padding: 12px 28px; background: rgba(15,17,21,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  nav.top b { font-size: 15px; }
+  nav.top a { color: var(--ink-2); text-decoration: none; font-size: 14px; }
+  nav.top a:hover { color: var(--ink); }
+  nav.top .spacer { flex: 1; }
+  select, button { font: inherit; }
+  select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  .btn { display: inline-block; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); text-decoration: none; cursor: pointer; font-weight: 500; }
+  .btn.primary { background: var(--accent); color: #062b16; border-color: var(--accent); }
+  .btn.blue { background: var(--accent-2); color: #fff; border-color: var(--accent-2); }
+  section { max-width: 1240px; margin: 0 auto; padding: 56px 28px; }
+  section.wide { max-width: 1500px; }
+  h1 { font-size: 44px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 14px; font-weight: 700; }
+  h2 { font-size: 28px; letter-spacing: -.01em; margin: 0 0 8px; }
+  h3 { font-size: 16px; margin: 0 0 6px; }
+  .sub { color: var(--ink-2); font-size: 18px; max-width: 760px; }
+  .eyebrow { color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; margin-bottom: 10px; }
+  .hero { padding-top: 80px; }
+  .hero .cta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+  .card p { color: var(--ink-2); margin: 6px 0 0; }
+  .num { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+  .chat { background: #0b141a; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .chat .m { max-width: 85%; padding: 7px 10px; border-radius: 10px; white-space: pre-wrap; }
+  .chat .u { align-self: flex-end; background: #005c4b; }
+  .chat .a { align-self: flex-start; background: #202c33; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--ink-2); margin-top: 18px; }
+  .flow span { background: var(--panel-2); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; color: var(--ink); }
+  .flow span.ai { border-color: var(--accent-2); }
+  .flow span.be { border-color: var(--accent); }
+  .flow i { color: var(--ink-3); font-style: normal; }
+  .stage { display: grid; grid-template-columns: 470px 1fr; gap: 14px; height: 860px; }
+  .stage iframe { width: 100%; height: 100%; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+  @media (max-width: 1100px) { .stage { grid-template-columns: 1fr; height: auto; } .stage iframe { height: 800px; } }
+  .stagebar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .stagebar .note { color: var(--ink-2); flex: 1; min-width: 260px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 18px; }
+  .step { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .step .say { font-weight: 600; }
+  .step .say::before { content: "Customer: "; color: var(--accent); font-weight: 500; }
+  .step .tools { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--accent-2); margin: 6px 0; }
+  .step .note { color: var(--ink-2); font-size: 13.5px; }
+  .step .n { color: var(--ink-3); font-size: 12px; }
+  .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 20px; }
+  .feature { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .feature b { display: block; margin-bottom: 4px; }
+  .feature span { color: var(--ink-2); font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink-3); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  td.k { color: var(--ink-2); white-space: nowrap; }
+  .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+  .timeline .card b { color: var(--accent); }
+  footer { text-align: center; color: var(--ink-3); padding: 40px; font-size: 13px; border-top: 1px solid var(--line); }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<nav class="top">
+  <b><span style="color:var(--accent)">Kodevengers</span> · AI Ordering Agent</b>
+  <a href="#pitch">Pitch</a><a href="#how">How it works</a><a href="#stage">Live stage</a><a href="#script">Demo script</a><a href="#features">Features</a><a href="#rollout">Rollout</a>
+  <span class="spacer"></span>
+  <label style="color:var(--ink-2);font-size:13px">Brand <select id="tenant"></select></label>
+  <a class="btn" href="/demo/" target="_blank">Simulator ↗</a><a class="btn" href="/dashboard/" target="_blank">Dashboard ↗</a>
+</nav>
+
+<section class="hero" id="pitch">
+  <div class="eyebrow">Concept for KFC Pakistan · Prepared by Kodevengers</div>
+  <h1>An AI employee on WhatsApp that takes a complete KFC order,<br>from first message to confirmed ticket in the kitchen.</h1>
+  <p class="sub">Customers order the way they talk: “2 Zinger meals, both large, one Coke one Sprite, no mayo on one.” The AI understands; your order engine decides menu, prices, promotions, branch, availability and payment. Nothing is invented.</p>
+  <div class="cta"><a class="btn primary" href="#stage">Start the live demo</a><a class="btn" href="#script">Read the script</a></div>
+  <div class="cols">
+    <div class="card"><div class="num">Menu → Cart</div><p>No categories, no taps, no forms. One sentence becomes a valid, priced, structured order.</p></div>
+    <div class="card"><div class="num">0 invented prices</div><p>Every number the customer sees comes from your backend. The model only talks.</p></div>
+    <div class="card"><div class="num">+AOV</div><p>Rule-based upsells (“make it a meal?”, “add 6 wings?”) delivered naturally, measured per conversation.</p></div>
+    <div class="card"><div class="num">POS-ready</div><p>Confirmed orders go straight to the live board and onward to your POS/KDS. No re-typing by staff.</p></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="eyebrow">How it works</div>
+  <h2>The AI is the conversation layer. Your systems stay the source of truth.</h2>
+  <p class="sub">The model never sees a giant menu dump and never keeps the cart in its head. It calls tools; the order engine answers. That is why corrections, deals and branch-specific stock work reliably.</p>
+  <div class="flow"><span>Customer</span><i>→</i><span>WhatsApp</span><i>→</i><span class="ai">AI agent (Claude + 21 tools)</span><i>→</i><span class="be">Menu · Cart · Pricing</span><span class="be">Deals · Promotions</span><span class="be">Branches · Inventory · Delivery</span><i>→</i><span class="be">Checkout · Payment</span><i>→</i><span>POS / Kitchen</span><i>→</i><span>Status updates</span></div>
+  <div class="cols">
+    <div class="card"><h3>Understands, then calls tools</h3><p>“Make one large” becomes <code>update_cart_item(units=1, add_modifiers=[Large])</code>. The engine splits the line and re-prices. Ambiguity is sent back as a question, not a guess.</p></div>
+    <div class="card"><h3>Deterministic cart and deals</h3><p>Deals are products with required choices (“Family Bucket: choose 2 sides, 1 drink”). Missing choices are reported by the backend; the agent asks only for those.</p></div>
+    <div class="card"><h3>Branch, stock, fee, ETA</h3><p>Typed area or a shared pin → nearest open branch in range → zone fee and ETA. Sold-out items at that branch are flagged before checkout, with alternatives.</p></div>
+    <div class="card"><h3>Explicit confirmation, then POS</h3><p>The order is only created after the customer says yes to an itemised summary. Status changes in the kitchen become WhatsApp updates automatically.</p></div>
+  </div>
+</section>
+
+<section class="wide" id="stage">
+  <div class="eyebrow">Live stage</div>
+  <h2>Present from this page: simulator on the left, restaurant dashboard on the right.</h2>
+  <div class="stagebar">
+    <button class="btn primary" id="stageNext">▶ Next step</button>
+    <button class="btn" id="stageReset">New conversation</button>
+    <span class="note" id="stageNote">Press “Next step” to play the scripted demo. The customer messages and replies are pre-written for reliability; every tool call runs on the real order engine, so the cart, prices, promo and orders you see are live. Switch the simulator to “Live AI” to type freely.</span>
+  </div>
+  <div class="stage">
+    <iframe id="sim" src="/demo/?tenant=kfc" title="WhatsApp simulator"></iframe>
+    <iframe id="dash" src="/dashboard/#orders" title="Dashboard"></iframe>
+  </div>
+</section>
+
+<section id="script">
+  <div class="eyebrow">Demo script</div>
+  <h2 id="scriptTitle">Script</h2>
+  <p class="sub">Each card is one customer message. The blue line is what the agent calls behind the scenes; the note is your talking point.</p>
+  <div class="steps" id="steps"></div>
+</section>
+
+<section id="features">
+  <div class="eyebrow">What the product does</div>
+  <h2>Everything a chain needs on day one.</h2>
+  <div class="features">
+    <div class="feature"><b>Natural-language ordering</b><span>Multiple items, quantities and per-item options in one message. English, Urdu and Roman Urdu.</span></div>
+    <div class="feature"><b>Corrections</b><span>“Actually 3”, “no, only 2”, “Sprite instead”, “cancel that one” — applied to the right line, every time.</span></div>
+    <div class="feature"><b>Menu with variants and modifiers</b><span>Sizes, drinks, customisation, allergens-ready structure. Per-branch pricing possible.</span></div>
+    <div class="feature"><b>Deals and bundles</b><span>Family buckets, kids boxes, share boxes with “choose 2 of…” rules enforced by the backend.</span></div>
+    <div class="feature"><b>Branch routing and inventory</b><span>Shared location or typed area, delivery radius, per-branch stock-outs with alternatives.</span></div>
+    <div class="feature"><b>Delivery fees and ETAs</b><span>Zone-based fees and time estimates, pickup prep times.</span></div>
+    <div class="feature"><b>Promotions and coupons</b><span>Codes with minimum order, caps, product/category scope, one-per-customer, expiry. Explained on request.</span></div>
+    <div class="feature"><b>Upselling rules</b><span>Configurable triggers → suggestion. Offered once, never pushy, acceptance measured.</span></div>
+    <div class="feature"><b>Order confirmation and status</b><span>Itemised summary, explicit yes, then automatic updates: confirmed → preparing → ready → on the way → delivered.</span></div>
+    <div class="feature"><b>Repeat orders</b><span>“Same as last time, but Sprite” rebuilds and edits a past order.</span></div>
+    <div class="feature"><b>Human takeover</b><span>Customer asks for a person or the AI gets stuck → staff reply from the dashboard, then hand back.</span></div>
+    <div class="feature"><b>Dashboard and analytics</b><span>Live board, conversations, menu controls, AI revenue, conversion, upsell rate, response time, peak hours.</span></div>
+  </div>
+</section>
+
+<section id="rollout">
+  <div class="eyebrow">Integration and rollout</div>
+  <h2>From pilot branch to the whole chain.</h2>
+  <table>
+    <tr><th>Layer</th><th>Demo today</th><th>Production</th></tr>
+    <tr><td class="k">Channel</td><td>WhatsApp Cloud API + browser simulator</td><td>Same WhatsApp number per brand; web chat, app and voice share the same engine</td></tr>
+    <tr><td class="k">Menu and pricing</td><td>Seeded per brand with branch stock-outs</td><td>Synced from the chain's menu management / POS catalogue</td></tr>
+    <tr><td class="k">Branch routing</td><td>Area geocoder + radius zones</td><td>Google/Mapbox geocoding, polygon delivery zones, live branch status from POS</td></tr>
+    <tr><td class="k">Orders</td><td>Live board, status advance on the dashboard</td><td>Pushed to POS/KDS via the chain's ordering API; status flows back automatically</td></tr>
+    <tr><td class="k">Payments</td><td>Cash on delivery, card on delivery/pickup</td><td>Online payment links, wallets, saved cards through the chain's PSP</td></tr>
+    <tr><td class="k">Tenancy</td><td>Three brands on one engine</td><td>Isolated data per brand, dashboards per brand and branch, SSO</td></tr>
+  </table>
+  <div class="timeline">
+    <div class="card"><b>Week 1–2 · Pilot</b><p>One brand, one branch, real menu import, staff trained on takeover. Measure conversion and AOV vs. app.</p></div>
+    <div class="card"><b>Week 3–6 · City rollout</b><p>All branches, POS integration, promotions calendar, upsell rules tuned to real data.</p></div>
+    <div class="card"><b>Quarter 2 · Scale</b><p>Web chat and app share the engine; loyalty and personalisation; reporting per region.</p></div>
+  </div>
+</section>
+
+<footer id="vendor">
+  <div style="font-size:15px;color:var(--ink)"><b>Kodevengers</b> · <a href="https://kodevengers.com" target="_blank">kodevengers.com</a> · <a href="mailto:imran@kodevengers.com">imran@kodevengers.com</a></div>
+  <div style="margin-top:10px">Concept demonstration prepared by Kodevengers for KFC Pakistan. Not affiliated with or endorsed by KFC. Other brands (CrunchBird, Golden Bun, Slice House) are fictional.</div>
+</footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let slug = "kfc";
+  async function loadScript() {
+    const scripts = await fetch(`/api/r/${slug}/demo/scripts`).then((r) => r.json());
+    const sc = scripts[0];
+    if (!sc) { $("scriptTitle").textContent = "No scripted demo for this brand yet — use Live AI mode."; $("steps").innerHTML = ""; return; }
+    $("scriptTitle").textContent = sc.title;
+    $("steps").innerHTML = sc.steps.map((st, i) => `<div class="step"><div class="n">Step ${i + 1}</div><div class="say">${esc(typeof st.say === "string" ? st.say : `📍 shares location (${st.say.name})`)}</div>${st.tools.length ? `<div class="tools">${st.tools.map(esc).join(" · ")}</div>` : ""}${st.note ? `<div class="note">${esc(st.note)}</div>` : ""}</div>`).join("");
+  }
+  $("stageNext").onclick = () => $("sim").contentWindow.postMessage({ type: "demo:next" }, "*");
+  $("stageReset").onclick = () => $("sim").contentWindow.postMessage({ type: "demo:reset" }, "*");
+  $("tenant").onchange = () => {
+    slug = $("tenant").value;
+    $("sim").contentWindow.postMessage({ type: "demo:tenant", slug }, "*");
+    $("dash").contentWindow.postMessage({ type: "demo:tenant", slug }, "*");
+    loadScript();
+  };
+  fetch("/api/restaurants").then((r) => r.json()).then((ts) => { $("tenant").innerHTML = ts.map((t) => `<option value="${t.slug}">${t.emoji} ${t.name}</option>`).join(""); slug = ts[0]?.slug || slug; $("tenant").value = slug; loadScript(); });
+})();
+</script>
+</body>
+</html>

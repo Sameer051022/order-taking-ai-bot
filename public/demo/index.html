@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp Ordering Demo</title>
+<style>
+  :root {
+    --bg: #eef1f4; --panel: #ffffff; --ink: #111827; --ink-2: #4b5563; --ink-3: #6b7280; --line: #e5e7eb;
+    --wa-green: #075e54; --wa-teal: #128c7e; --wa-light: #25d366; --wa-chat: #efe7dd; --wa-out: #dcf8c6; --wa-in: #ffffff;
+    --accent: #2a78d6; --warn: #b45309; --ok: #047857; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  header.top { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; font-size: 13px; }
+  header.top label { white-space: nowrap; }
+  header.top h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header.top .spacer { flex: 1; }
+  header.top .row { display: inline-flex; gap: 8px; align-items: center; }
+  header.top .banner b { color: var(--ink); }
+  header.top a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  select, input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 10px; color: var(--ink); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  main { display: grid; grid-template-columns: 420px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+
+  /* Phone */
+  .phone { background: #111; border-radius: 36px; padding: 12px; box-shadow: 0 20px 50px rgba(0,0,0,.25); height: 780px; display: flex; flex-direction: column; }
+  .screen { background: var(--wa-chat); border-radius: 26px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .wa-header { background: var(--wa-green); color: #fff; padding: 14px 14px 10px; display: flex; align-items: center; gap: 10px; }
+  .wa-header .avatar { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 20px; }
+  .wa-header .name { font-weight: 600; }
+  .wa-header .sub { font-size: 11px; opacity: .85; }
+  .wa-header .status { margin-left: auto; font-size: 11px; background: rgba(255,255,255,.15); padding: 3px 8px; border-radius: 10px; }
+  .chat { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--wa-chat) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='1.2' fill='%23d9cfc2'/%3E%3C/svg%3E"); }
+  .bubble { max-width: 84%; padding: 7px 10px; border-radius: 10px; box-shadow: 0 1px 1px rgba(0,0,0,.08); white-space: pre-wrap; word-wrap: break-word; font-size: 13.5px; position: relative; }
+  .bubble.in { background: var(--wa-in); align-self: flex-start; border-top-left-radius: 2px; }
+  .bubble.out { background: var(--wa-out); align-self: flex-end; border-top-right-radius: 2px; }
+  .bubble.sys { background: #fff3cd; align-self: center; font-size: 12px; color: #6b5300; border-radius: 8px; }
+  .bubble .time { display: block; text-align: right; font-size: 10px; color: #7b8a8b; margin-top: 3px; }
+  .typing { align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 10px; font-size: 12px; color: var(--ink-3); }
+  .typing span { display: inline-block; width: 6px; height: 6px; margin: 0 1px; background: #9ca3af; border-radius: 50%; animation: b 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .15s } .typing span:nth-child(3) { animation-delay: .3s }
+  @keyframes b { 0%, 80%, 100% { transform: translateY(0) } 40% { transform: translateY(-4px) } }
+  .composer { display: flex; gap: 6px; padding: 8px; background: #f0f0f0; align-items: center; }
+  .composer input { flex: 1; border-radius: 20px; padding: 9px 14px; border: 1px solid #ddd; }
+  .composer button { border-radius: 50%; width: 38px; height: 38px; padding: 0; display: grid; place-items: center; }
+  .composer button.send { background: var(--wa-teal); color: #fff; border-color: var(--wa-teal); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: #f7f7f7; border-top: 1px solid #e5e5e5; max-height: 92px; overflow-y: auto; }
+  .chips button { font-size: 12px; padding: 4px 9px; border-radius: 14px; background: #fff; }
+
+  /* Side panel */
+  .side { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .card h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .card h2 .pill { margin-left: auto; font-size: 11px; text-transform: none; letter-spacing: 0; padding: 2px 8px; border-radius: 10px; background: #eef2ff; color: #3730a3; font-weight: 500; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row label { color: var(--ink-2); font-size: 13px; }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 10px; font-size: 13px; }
+  .kv b { color: var(--ink-2); font-weight: 500; }
+  table.cart { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.cart td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.cart td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.cart tr.total td { border: 0; font-weight: 600; }
+  table.cart .opt { color: var(--ink-3); font-size: 12px; }
+  table.cart .issue { color: var(--warn); font-size: 12px; }
+  .empty { color: var(--ink-3); font-size: 13px; }
+  .tools { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+  .tool { border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-family: var(--mono); font-size: 12px; }
+  .tool summary { cursor: pointer; display: flex; gap: 8px; align-items: center; list-style: none; }
+  .tool summary::-webkit-details-marker { display: none; }
+  .tool .name { color: var(--accent); font-weight: 600; }
+  .tool .ms { margin-left: auto; color: var(--ink-3); }
+  .tool .err { color: #b91c1c; }
+  .tool pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; color: var(--ink-2); max-height: 220px; overflow: auto; }
+  .banner { font-size: 12px; color: var(--ink-2); }
+  .banner code { font-family: var(--mono); background: #f3f4f6; padding: 1px 5px; border-radius: 4px; }
+  .arch { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); white-space: pre; line-height: 1.5; }
+  :root { --brand: #2a78d6; --brand-dark: #141414; --brand-ink: #fff; }
+  .card { border-top: 3px solid var(--brand); }
+  .card h2 .pill { background: color-mix(in srgb, var(--brand) 12%, #fff); color: var(--brand-dark); }
+  .tool .name { color: var(--brand); }
+  button.primary { background: var(--brand); border-color: var(--brand); }
+  .wa-header .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .bubble b { font-weight: 650; }
+  .vendor { display: flex; justify-content: center; gap: 18px; padding: 14px 20px 26px; color: var(--ink-3); font-size: 13px; flex-wrap: wrap; }
+  .vendor a { color: var(--ink-2); text-decoration: none; font-weight: 500; }
+  .vendor .k { color: var(--brand-dark); font-weight: 700; }
+  .vendor .dot { color: #cbd5e1; }
+  /* Presentation layout (used for video recording): bigger type, clean chrome */
+  body.present header.top, body.present .chips, body.present .bubble.sys, body.present #cartId, body.present #latency, body.present #session b:first-child, body.present #session b:first-child + span { display: none !important; }
+  body.present main { grid-template-columns: 600px 1fr; gap: 28px; padding: 26px 30px 0; max-width: 1600px; }
+  body.present .phone { height: 812px; border-radius: 40px; }
+  body.present .bubble { font-size: 17px; padding: 9px 13px; max-width: 86%; }
+  body.present .bubble .time { font-size: 11px; }
+  body.present .wa-header .name { font-size: 18px; } body.present .wa-header .sub { font-size: 13px; }
+  body.present .wa-header .avatar { width: 46px; height: 46px; }
+  body.present .composer input { font-size: 16px; }
+  body.present .card { padding: 18px 22px; }
+  body.present .card h2 { font-size: 15px; }
+  body.present .banner, body.present .kv { font-size: 16px; }
+  body.present .arch { font-size: 13px; }
+  body.present table.cart { font-size: 17px; } body.present table.cart .opt { font-size: 15px; } body.present table.cart td { padding: 8px 4px; }
+  body.present .tool { font-size: 14px; } body.present .tool pre { font-size: 13px; max-height: 150px; }
+  body.present .kv { grid-template-columns: 130px 1fr; }
+  body.present .vendor { font-size: 15px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 style="white-space:nowrap">AI Ordering Agent</h1>
+  <label><select id="tenant"></select></label>
+  <label><select id="customer">
+    <option value="923001234567|Ahmed">Ahmed · returning (923001234567)</option>
+    <option value="923219876543|Sara">Sara · new (923219876543)</option>
+    <option value="custom|">Custom number…</option>
+  </select></label>
+  <input id="customPhone" type="text" placeholder="92300…" style="display:none;width:150px">
+  <button id="reset">New chat</button>
+  <label><select id="mode"><option value="scripted">Scripted demo</option><option value="live">Live AI</option></select></label>
+  <span id="scriptCtl" class="row"><button class="primary" id="next">▶ Next step</button><button id="auto">Autoplay</button><span id="stepInfo" class="banner"></span></span>
+  <span class="spacer"></span>
+  <a href="/presentation/" target="_blank">Presentation ↗</a>
+  <a href="/dashboard/" target="_blank">Open restaurant dashboard ↗</a>
+</header>
+
+<main id="main">
+  <section class="phone">
+    <div class="screen">
+      <div class="wa-header">
+        <div class="avatar" id="avatar">🍗</div>
+        <div><div class="name" id="waName">CrunchBird</div><div class="sub" id="waSub">Business account · typically replies instantly</div></div>
+        <div class="status" id="aiStatus">AI</div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div class="chips" id="chips"></div>
+      <div class="composer">
+        <button id="loc" title="Share location">📍</button>
+        <button id="menuBtn" title="Ask for the menu">📋</button>
+        <input id="input" type="text" placeholder="Type a message" autocomplete="off">
+        <button class="send" id="send" title="Send">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="card">
+      <h2>Behind the scenes <span class="pill" id="latency">—</span></h2>
+      <div class="banner">The AI is only the conversation layer. Everything below comes from the backend: the cart, prices, branch routing, promo eligibility and the order itself.</div>
+      <div class="arch" style="margin-top:8px">Customer → WhatsApp → AI agent (Claude, tools) → Order engine → Branch / Cart / Pricing / Promotions → POS</div>
+    </div>
+    <div class="card">
+      <h2>Live cart (backend state) <span class="pill" id="cartId">no cart</span></h2>
+      <div id="cart" class="empty">Empty</div>
+    </div>
+    <div class="card">
+      <h2>Session</h2>
+      <div class="kv" id="session"></div>
+    </div>
+    <div class="card">
+      <h2>Tool calls this turn <span class="pill" id="toolCount">0</span></h2>
+      <div class="tools" id="tools"><div class="empty">Send a message to see the agent call backend tools.</div></div>
+    </div>
+  </aside>
+</main>
+<footer class="vendor" id="vendor"></footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  if (qs.get("present") === "1") document.body.classList.add("present");
+  const state = { slug: qs.get("tenant") || null, phone: (qs.get("phone") || "923001234567").replace(/\D/g, ""), name: "Ahmed", tenants: [], es: null, busy: false, cur: "Rs", mode: "scripted", scripts: [], step: 0, auto: false };
+  const money = (n) => `${state.cur} ${Number(n || 0).toLocaleString("en-PK")}`;
+  const fmtTime = (d = new Date()) => d.toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit" });
+
+  const CHIPS = {
+    kfc: ["Hi", "Show me the menu", "2 Zinger combos", "One Pepsi one 7UP", "Make the 7UP one large", "Add 10 hot wings", "No mayo on the Pepsi one", "Family Festival please", "Fries and coleslaw, Pepsi", "Delivery to DHA Phase 6", "Apply SAVE20", "Any deals today?", "Same order as last time", "2 zinger combo dedo, aik large", "Pickup from Gulberg", "Yes confirm, cash", "Where is my order?"],
+    crunchbird: ["Hi", "2 spicy chicken burger meals", "One Coke one Sprite", "Make one large", "Add 6 hot wings", "No mayo on one of the meals", "Family deal please", "Fries and coleslaw, Coke", "Delivery to DHA Phase 6", "Apply SAVE20", "Any deals today?", "Same order as last time", "2 zinger meal dedo, aik large", "Pickup from Gulberg", "Yes confirm, cash", "Where is my order?"],
+    goldenbun: ["Hi", "A large Big Stack meal with Coke", "Kids box with nuggets", "20 nuggets with BBQ and ranch", "Make the meal medium instead", "No pickles on the Big Stack", "Family box: 2 big stacks 2 crispy chicken, 4 cokes", "Delivery to Gulberg", "Apply BIG20", "Yes confirm, cash", "Where's my order?"],
+    slicehouse: ["Hi", "One large chicken tikka, stuffed crust", "Make it two, one thin crust", "Extra cheese on the first one", "Garlic bread too", "Delivery to Gulberg", "Apply TUESDAY", "Yes confirm, card", "Where is my order?"],
+  };
+
+  function api(path, opts = {}) {
+    return fetch(`/api/r/${state.slug}${path}`, { headers: { "Content-Type": "application/json" }, ...opts }).then(async (r) => {
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || r.statusText);
+      return j;
+    });
+  }
+
+  const waFormat = (t) => esc(t).replace(/\*([^*\n]+)\*/g, "<b>$1</b>").replace(/_([^_\n]+)_/g, "<i>$1</i>");
+  function bubble(kind, text, time) {
+    const el = document.createElement("div");
+    el.className = `bubble ${kind}`;
+    el.innerHTML = waFormat(text);
+    if (kind !== "sys") { const t = document.createElement("span"); t.className = "time"; t.textContent = time ? fmtTime(new Date(time)) : fmtTime(); el.appendChild(t); }
+    $("chat").appendChild(el);
+    $("chat").scrollTop = $("chat").scrollHeight;
+    return el;
+  }
+  function typing(on) {
+    let t = $("chat").querySelector(".typing");
+    if (on && !t) { t = document.createElement("div"); t.className = "typing"; t.innerHTML = "<span></span><span></span><span></span>"; $("chat").appendChild(t); $("chat").scrollTop = $("chat").scrollHeight; }
+    if (!on && t) t.remove();
+  }
+
+  function renderCart(cart) {
+    $("cartId").textContent = cart ? cart.cart_id : "no cart";
+    if (!cart || !cart.lines.length) { $("cart").innerHTML = '<div class="empty">Empty</div>'; return; }
+    const rows = cart.lines.map((l) => `<tr><td>${l.quantity} × ${esc(l.product_name)}${l.summary ? `<div class="opt">${esc(l.summary)}</div>` : ""}${l.issues.map((i) => `<div class="issue">⚠ ${esc(i.message)}</div>`).join("")}</td><td class="num">${money(l.line_total)}</td></tr>`).join("");
+    const t = cart.totals;
+    const extra = [
+      t.discount ? `<tr><td>Discount${t.discount_label ? ` (${esc(t.discount_label)})` : ""}</td><td class="num">− ${money(t.discount)}</td></tr>` : "",
+      `<tr><td>Tax (${Math.round(t.tax_rate * 100)}%)</td><td class="num">${money(t.tax)}</td></tr>`,
+      t.delivery_fee ? `<tr><td>Delivery</td><td class="num">${money(t.delivery_fee)}</td></tr>` : "",
+      cart.promo_error ? `<tr><td colspan="2" class="issue">Promo: ${esc(cart.promo_error)}</td></tr>` : "",
+    ].join("");
+    $("cart").innerHTML = `<table class="cart">${rows}<tr><td>Subtotal</td><td class="num">${money(t.subtotal)}</td></tr>${extra}<tr class="total"><td>Total</td><td class="num">${money(t.total)}</td></tr></table>`;
+  }
+  function renderSession(conv) {
+    const items = conv ? [
+      ["Conversation", conv.id], ["Status", conv.status === "human" ? "Human agent" : conv.status],
+      ["Fulfilment", conv.fulfilment || "—"], ["Branch", conv.branch_name || conv.branch_id || "—"],
+      ["Address", conv.address ? `${conv.address.text}${conv.address.delivery_fee != null ? ` · fee ${money(conv.address.delivery_fee)} · ETA ${conv.address.eta_min}–${conv.address.eta_max} min` : ""}` : "—"],
+    ] : [["Conversation", "—"]];
+    $("session").innerHTML = items.map(([k, v]) => `<b>${k}</b><span>${esc(v)}</span>`).join("");
+    $("aiStatus").textContent = conv && conv.status === "human" ? "Human" : "AI";
+  }
+  function addTool(t) {
+    const box = $("tools");
+    if (box.querySelector(".empty")) box.innerHTML = "";
+    const isErr = t.result && typeof t.result === "object" && "error" in t.result;
+    const d = document.createElement("details");
+    d.className = "tool";
+    d.innerHTML = `<summary><span class="name">${esc(t.tool)}</span><span class="${isErr ? "err" : ""}">${isErr ? "error" : "ok"}</span><span class="ms">${t.ms} ms</span></summary><pre>→ ${esc(JSON.stringify(t.input))}\n← ${esc(JSON.stringify(t.result, null, 1)).slice(0, 2500)}</pre>`;
+    box.appendChild(d);
+    $("toolCount").textContent = box.children.length;
+    box.scrollTop = box.scrollHeight;
+  }
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  async function loadState() {
+    $("chat").innerHTML = "";
+    $("tools").innerHTML = '<div class="empty">Send a message to see the agent call backend tools.</div>';
+    $("toolCount").textContent = "0";
+    const s = await api(`/demo/state?phone=${state.phone}`);
+    if (!s.conversation) bubble("sys", `New conversation as ${state.name || state.phone}. Say hi!`);
+    for (const m of s.messages) bubble(m.role === "user" ? "out" : "in", m.text, m.at);
+    renderCart(s.cart); renderSession(s.conversation);
+    const played = s.messages.filter((m) => m.role === "user").length;
+    const total = state.scripts[0] ? state.scripts[0].steps.length : 0;
+    state.step = Math.min(played, total);
+    updateStepInfo();
+  }
+
+  function updateStepInfo() {
+    const sc = state.scripts[0];
+    if (!sc) { $("stepInfo").textContent = "No script for this restaurant"; $("next").disabled = true; return; }
+    const st = sc.steps[state.step];
+    $("next").disabled = !st;
+    $("stepInfo").innerHTML = st ? `Step ${state.step + 1}/${sc.steps.length} · next: <b>${esc(typeof st.say === "string" ? st.say : `📍 ${st.say.name}`)}</b>` : `Script finished (${sc.steps.length} steps). Click “New conversation” to run again.`;
+  }
+  async function nextStep() {
+    const sc = state.scripts[0];
+    const st = sc && sc.steps[state.step];
+    if (!st || state.busy) return;
+    state.busy = true; $("next").disabled = true;
+    bubble("out", typeof st.say === "string" ? st.say : `📍 Shared location (${st.say.name})`);
+    $("tools").innerHTML = ""; $("toolCount").textContent = "0";
+    typing(true);
+    try {
+      await new Promise((r) => setTimeout(r, 700 + Math.random() * 600));
+      const res = await api("/demo/replay", { method: "POST", body: JSON.stringify({ script: 0, step: state.step, phone: state.phone }) });
+      typing(false);
+      for (const r of res.replies) bubble("in", r);
+      $("latency").textContent = "scripted";
+      renderCart(res.cart); renderSession(res.conversation);
+      state.step++;
+    } catch (e) { typing(false); bubble("sys", `Error: ${e.message}`); }
+    finally { state.busy = false; updateStepInfo(); }
+    if (state.auto && sc.steps[state.step]) setTimeout(nextStep, 2600);
+    else if (state.auto) { state.auto = false; $("auto").textContent = "Autoplay"; }
+  }
+  async function send(text, location) {
+    if (state.mode === "scripted" && text) {
+      // Free typing in scripted mode still goes to the live agent so presenters can improvise.
+      bubble("sys", "Free-typed message: sent to the live AI.");
+    }
+    if (state.busy || (!text && !location)) return;
+    state.busy = true; $("send").disabled = true;
+    bubble("out", location ? `📍 Shared location (${location.name || `${location.lat}, ${location.lng}`})` : text);
+    $("tools").innerHTML = ""; $("toolCount").textContent = "0";
+    typing(true);
+    try {
+      const res = await api("/demo/message", { method: "POST", body: JSON.stringify({ phone: state.phone, name: state.name || undefined, text, location }) });
+      typing(false);
+      for (const r of res.replies) bubble("in", r);
+      if (!res.handled_by_ai) bubble("sys", "A human agent has this conversation. Reply from the dashboard.");
+      $("latency").textContent = res.latency_ms ? `${(res.latency_ms / 1000).toFixed(1)} s` : "—";
+      renderCart(res.cart); renderSession(res.conversation);
+    } catch (e) {
+      typing(false); bubble("sys", `Error: ${e.message}`);
+    } finally { state.busy = false; $("send").disabled = false; $("input").focus(); }
+  }
+
+  function connectEvents() {
+    if (state.es) state.es.close();
+    state.es = new EventSource(`/api/r/${state.slug}/demo/events?phone=${state.phone}`);
+    state.es.onmessage = (ev) => {
+      const e = JSON.parse(ev.data);
+      if (e.type === "agent.tool") addTool(e);
+      if (e.type === "customer.message") { bubble("in", e.text); if (e.kind === "notification") { const el = bubble("sys", "↑ automatic status update from the order engine"); } }
+    };
+  }
+
+  function renderChips() {
+    $("chips").innerHTML = "";
+    for (const c of CHIPS[state.slug] || CHIPS.crunchbird) { const b = document.createElement("button"); b.textContent = c; b.onclick = () => send(c); $("chips").appendChild(b); }
+  }
+
+  function applyTheme(t) {
+    const th = t.theme || { primary: "#2a78d6", secondary: "#141414", on_primary: "#fff", logo_text: t.name };
+    document.documentElement.style.setProperty("--brand", th.primary);
+    document.documentElement.style.setProperty("--brand-dark", th.secondary);
+    document.documentElement.style.setProperty("--brand-ink", th.on_primary);
+    $("avatar").innerHTML = th.logo_url ? `<img src="${th.logo_url}" alt="${esc(t.name)}">` : esc(t.emoji);
+  }
+  async function switchTenant() {
+    const t = state.tenants.find((x) => x.slug === state.slug) || state.tenants[0];
+    state.slug = t.slug; $("tenant").value = t.slug;
+    state.cur = t.currency; applyTheme(t); $("waName").textContent = t.name; $("waSub").textContent = `${t.tagline} · Business account`;
+    state.scripts = await api("/demo/scripts"); state.step = 0;
+    renderChips(); connectEvents(); await loadState(); updateStepInfo();
+  }
+  $("mode").onchange = () => { state.mode = $("mode").value; $("scriptCtl").style.display = state.mode === "scripted" ? "" : "none"; };
+  $("next").onclick = nextStep;
+  $("auto").onclick = () => { state.auto = !state.auto; $("auto").textContent = state.auto ? "⏸ Stop autoplay" : "Autoplay"; if (state.auto) nextStep(); };
+  window.addEventListener("message", (ev) => {
+    const d = ev.data || {};
+    if (d.type === "demo:next") nextStep();
+    if (d.type === "demo:reset") $("reset").click();
+    if (d.type === "demo:tenant" && d.slug && d.slug !== state.slug) { state.slug = d.slug; $("tenant").value = d.slug; switchTenant(); }
+  });
+
+  $("tenant").onchange = () => { state.slug = $("tenant").value; switchTenant(); };
+  $("customer").onchange = () => {
+    const [phone, name] = $("customer").value.split("|");
+    $("customPhone").style.display = phone === "custom" ? "" : "none";
+    if (phone !== "custom") { state.phone = phone; state.name = name; state.step = 0; connectEvents(); loadState(); updateStepInfo(); }
+  };
+  $("customPhone").onchange = () => { state.phone = $("customPhone").value.replace(/\D/g, "") || "923000000000"; state.name = ""; connectEvents(); loadState(); };
+  $("send").onclick = () => { const v = $("input").value.trim(); $("input").value = ""; send(v); };
+  $("input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("send").click(); });
+  $("reset").onclick = async () => { await api("/demo/reset", { method: "POST", body: JSON.stringify({ phone: state.phone }) }); state.step = 0; state.auto = false; $("auto").textContent = "Autoplay"; await loadState(); updateStepInfo(); };
+  $("loc").onclick = () => {
+    const spots = { "DHA Phase 6": [31.4697, 74.43], "Gulberg (MM Alam)": [31.5204, 74.3587], "Johar Town": [31.4697, 74.2728], "Bahria Town (out of zone)": [31.3675, 74.1817] };
+    const pick = prompt(`Share which location?\n${Object.keys(spots).map((k, i) => `${i + 1}. ${k}`).join("\n")}`, "1");
+    const key = Object.keys(spots)[Number(pick) - 1];
+    if (key) send(undefined, { lat: spots[key][0], lng: spots[key][1], name: key });
+  };
+
+  $("menuBtn").onclick = () => send("Show me the menu");
+  fetch("/api/vendor").then((r) => r.json()).then((v) => { $("vendor").innerHTML = `<span>Built by <span class="k">${esc(v.name)}</span></span><span class="dot">•</span><a href="${v.website}" target="_blank">${esc(v.website_label)}</a><span class="dot">•</span><a href="mailto:${v.email}">${esc(v.email)}</a>`; }).catch(() => {});
+  fetch("/api/restaurants").then((r) => r.json()).then((ts) => {
+    state.tenants = ts;
+    $("tenant").innerHTML = ts.map((t) => `<option value="${t.slug}">${t.emoji} ${t.name}</option>`).join("");
+    if (qs.get("phone")) { $("customer").value = [...$("customer").options].some((o) => o.value.startsWith(state.phone)) ? [...$("customer").options].find((o) => o.value.startsWith(state.phone)).value : "custom|"; }
+    switchTenant();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+import type { SeedArea } from "./types.js";
+
+export const LAHORE_AREAS: SeedArea[] = [
+  { name: "DHA Phase 1", aliases: ["dha 1", "phase 1", "defence phase 1"], city: "Lahore", lat: 31.4830, lng: 74.3920 },
+  { name: "DHA Phase 2", aliases: ["dha 2", "phase 2"], city: "Lahore", lat: 31.4760, lng: 74.4080 },
+  { name: "DHA Phase 3", aliases: ["dha 3", "phase 3", "y block"], city: "Lahore", lat: 31.4790, lng: 74.3810 },
+  { name: "DHA Phase 4", aliases: ["dha 4", "phase 4"], city: "Lahore", lat: 31.4660, lng: 74.3840 },
+  { name: "DHA Phase 5", aliases: ["dha 5", "phase 5", "defence phase 5"], city: "Lahore", lat: 31.4640, lng: 74.4020 },
+  { name: "DHA Phase 6", aliases: ["dha 6", "phase 6", "defence phase 6", "dha phase vi"], city: "Lahore", lat: 31.4697, lng: 74.4300 },
+  { name: "DHA Phase 7", aliases: ["dha 7", "phase 7"], city: "Lahore", lat: 31.4600, lng: 74.4600 },
+  { name: "DHA Phase 8", aliases: ["dha 8", "phase 8", "airport road"], city: "Lahore", lat: 31.4950, lng: 74.4450 },
+  { name: "Cantt", aliases: ["lahore cantt", "cantonment", "sarwar road"], city: "Lahore", lat: 31.5220, lng: 74.3900 },
+  { name: "Gulberg", aliases: ["gulberg 3", "gulberg iii", "gulberg 2", "mm alam road", "liberty", "main boulevard"], city: "Lahore", lat: 31.5204, lng: 74.3587 },
+  { name: "Garden Town", aliases: ["garden town"], city: "Lahore", lat: 31.4950, lng: 74.3100 },
+  { name: "Model Town", aliases: ["model town", "model town link road"], city: "Lahore", lat: 31.4806, lng: 74.3260 },
+  { name: "Faisal Town", aliases: ["faisal town"], city: "Lahore", lat: 31.4770, lng: 74.3030 },
+  { name: "Johar Town", aliases: ["johar town", "johar", "emporium", "expo center"], city: "Lahore", lat: 31.4697, lng: 74.2728 },
+  { name: "Wapda Town", aliases: ["wapda town", "wapda"], city: "Lahore", lat: 31.4290, lng: 74.2650 },
+  { name: "Township", aliases: ["township", "college road"], city: "Lahore", lat: 31.4560, lng: 74.3020 },
+  { name: "Allama Iqbal Town", aliases: ["iqbal town", "allama iqbal town"], city: "Lahore", lat: 31.5100, lng: 74.2870 },
+  { name: "Shadman", aliases: ["shadman", "jail road"], city: "Lahore", lat: 31.5390, lng: 74.3260 },
+  { name: "Mall Road", aliases: ["mall road", "the mall", "anarkali"], city: "Lahore", lat: 31.5580, lng: 74.3300 },
+  { name: "Askari 11", aliases: ["askari 11", "askari xi", "askari"], city: "Lahore", lat: 31.4440, lng: 74.4130 },
+  { name: "Valencia Town", aliases: ["valencia", "valencia town"], city: "Lahore", lat: 31.3990, lng: 74.2540 },
+  { name: "Bahria Town", aliases: ["bahria", "bahria town lahore"], city: "Lahore", lat: 31.3675, lng: 74.1817 },
+  { name: "Lake City", aliases: ["lake city"], city: "Lahore", lat: 31.3560, lng: 74.2420 },
+  { name: "Gulshan-e-Ravi", aliases: ["gulshan ravi", "gulshan e ravi"], city: "Lahore", lat: 31.5390, lng: 74.2900 },
+];
